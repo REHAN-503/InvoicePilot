@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  CANCELLED
+  REFUNDED
+  OVERDUE
+}
+
+enum ReminderTone {
+  FRIENDLY
+  FIRM
+  FINAL
+}
+
+enum ReminderStatus {
+  PROPOSED
+  SENT
+  DISMISSED
+}
+
+model Client {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  avgDaysLate   Float     @default(0)
+  createdAt     DateTime  @default(now())
+  invoices      Invoice[]
+}
+
+model Invoice {
+  id              String      @id @default(cuid())
+  paypalInvoiceId String?     @unique
+  invoiceNumber   String      @unique
+  clientId        String
+  client          Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  amount          Decimal
+  currency        String      @default("USD")
+  status          InvoiceStatus @default(DRAFT)
+  dueDate         DateTime
+  payLink         String?
+  note            String?
+  createdAt       DateTime    @default(now())
+  paidAt          DateTime?
+  lineItems       LineItem[]
+  reminders       Reminder[]
+}
+
+model LineItem {
+  id          String   @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Int
+  unitPrice   Decimal
+}
+
+model Reminder {
+  id          String         @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice        @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  tone        ReminderTone
+  message     String
+  status      ReminderStatus @default(PROPOSED)
+  createdAt   DateTime       @default(now())
+  sentAt      DateTime?
+}
+
+model AgentLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  action    String
+  reasoning String
+  payload   Json
+  status    String
+}
+
+model Policy {
+  id              String   @id @default(cuid())
+  autoRemind      Boolean  @default(false)
+  maxAutoAmount   Decimal  @default(0)
+  maxInvoiceAmount Decimal @default(5000)
+
+  @@unique([id])
+}
