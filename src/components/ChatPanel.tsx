@@ -29,9 +29,10 @@ type Message =
 
 interface ChatPanelProps {
   className?: string;
+  onApproveComplete?: () => void;
 }
 
-export function ChatPanel({ className = "" }: ChatPanelProps) {
+export function ChatPanel({ className = "", onApproveComplete }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -114,6 +115,7 @@ export function ChatPanel({ className = "" }: ChatPanelProps) {
           },
         ]);
         setShowProposal(null);
+        onApproveComplete?.();
       } else {
         toast.error("Failed to send invoice", {
           description: data.error || "Unknown error",
