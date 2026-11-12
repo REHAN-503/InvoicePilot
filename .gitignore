@@ -48,3 +48,7 @@ prisma/migrations/
 
 # OS
 Thumbs.db
+
+# Project docs (local only)
+AGENTS.md
+PROGRESS.md
